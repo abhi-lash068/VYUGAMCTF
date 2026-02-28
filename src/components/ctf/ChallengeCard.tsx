@@ -53,15 +53,16 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
   };
 
   const getCategoryColor = (cat: string) => {
+    // Monochromatic green hacker theme
     switch (cat) {
-      case 'Web': return 'bg-blue-500/20 text-blue-400 border-blue-500/50';
-      case 'Crypto': return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
-      case 'Forensics': return 'bg-green-500/20 text-green-400 border-green-500/50';
-      case 'AI Security': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50';
-      case 'OSINT': return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
-      case 'DEBUG': return 'bg-red-500/20 text-red-400 border-red-500/50';
-      case 'General': return 'bg-amber-500/20 text-amber-400 border-amber-500/50';
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
+      case 'Web': return 'bg-primary/10 text-primary border-primary/30';
+      case 'Crypto': return 'bg-primary/20 text-primary border-primary/40';
+      case 'Forensics': return 'bg-primary/5 text-primary border-primary/20';
+      case 'AI Security': return 'bg-primary/25 text-primary border-primary/50';
+      case 'OSINT': return 'bg-primary/15 text-primary border-primary/35';
+      case 'DEBUG': return 'bg-red-500/10 text-red-400 border-red-500/30';
+      case 'General': return 'bg-primary/10 text-primary border-primary/20';
+      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
   };
 
@@ -72,7 +73,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
       <DialogTrigger asChild>
         <Card className={cn(
           "cyber-card cursor-pointer group relative overflow-hidden",
-          isSolved && "opacity-75 grayscale-[0.5]"
+          isSolved && "opacity-75 grayscale-[0.8]"
         )}>
           {isSolved && (
             <div className="absolute top-2 right-2 z-10">
@@ -83,7 +84,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
           )}
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className={cn("mb-2", getCategoryColor(challenge.category))}>
+              <Badge variant="outline" className={cn("mb-2 uppercase text-[10px]", getCategoryColor(challenge.category))}>
                 {challenge.category}
               </Badge>
               <span className="text-xl font-bold text-primary font-code">{challenge.points}pts</span>
@@ -137,7 +138,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
             )}
             
             {files.map((file, idx) => (
-              <Button key={idx} variant="outline" size="sm" className="gap-2 border-accent/30 hover:bg-accent/10" asChild>
+              <Button key={idx} variant="outline" size="sm" className="gap-2 border-primary/20 hover:bg-primary/10" asChild>
                 <a href={file.url} target="_blank" rel="noopener noreferrer">
                   <Download className="h-4 w-4" /> {file.name || 'Download File'}
                 </a>
@@ -192,7 +193,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
 
         <DialogFooter className="text-xs text-muted-foreground font-code pt-4 border-t border-border/20">
           {isSolved ? (
-            <span className="text-green-400 flex items-center gap-1 font-bold">
+            <span className="text-primary flex items-center gap-1 font-bold">
               <Unlock className="h-3 w-3" /> CHALLENGE ALREADY SOLVED
             </span>
           ) : (

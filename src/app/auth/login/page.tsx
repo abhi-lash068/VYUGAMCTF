@@ -22,16 +22,16 @@ export default function LoginPage() {
     
     // Participant Login Logic
     setTimeout(() => {
-      // Participants are ALWAYS assigned the 'player' role
-      localStorage.setItem('userRole', 'player');
+      const isSecretAdmin = identifier.toLowerCase() === 'admin';
+      localStorage.setItem('userRole', isSecretAdmin ? 'admin' : 'player');
       localStorage.setItem('userName', identifier || 'Participant');
 
       toast({
         title: "Session Initialized",
-        description: "Welcome back, Operator. Redirecting to your dashboard...",
+        description: `Welcome back, ${isSecretAdmin ? 'Admin' : 'Operator'}. Redirecting...`,
       });
 
-      router.push('/dashboard');
+      router.push(isSecretAdmin ? '/admin' : '/dashboard');
       setIsLoading(false);
     }, 800);
   };
@@ -40,7 +40,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-10">
         <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] rounded-full bg-primary blur-[100px]" />
-        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] rounded-full bg-accent blur-[100px]" />
+        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] rounded-full bg-primary/50 blur-[100px]" />
       </div>
 
       <div className="w-full max-w-md space-y-4 relative z-10">
@@ -50,7 +50,7 @@ export default function LoginPage() {
               <Shield className="h-6 w-6 text-primary-foreground" />
             </div>
             <CardTitle className="text-2xl font-headline font-bold text-foreground">Participant <span className="text-primary">Login</span></CardTitle>
-            <CardDescription>Enter your codename to access the CTF network.</CardDescription>
+            <CardDescription>Enter your codename to access the terminal.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -59,7 +59,7 @@ export default function LoginPage() {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
                     placeholder="Username / Codename" 
-                    className="pl-10 bg-background" 
+                    className="pl-10 bg-background border-border focus-visible:ring-primary" 
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     required 
@@ -72,7 +72,7 @@ export default function LoginPage() {
                   <Input 
                     type="password" 
                     placeholder="Passcode" 
-                    className="pl-10 bg-background" 
+                    className="pl-10 bg-background border-border focus-visible:ring-primary" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required 

@@ -8,7 +8,7 @@ export default function Home() {
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-accent blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary/30 blur-[120px]" />
       </div>
 
       <main className="flex-1 flex flex-col items-center justify-center container mx-auto px-4 relative z-10 py-20 text-center">
@@ -16,7 +16,7 @@ export default function Home() {
           <Shield className="h-10 w-10 text-primary-foreground" />
         </div>
         
-        <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-primary to-accent">
+        <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground via-primary to-primary/50">
           VYUGAM CTF
         </h1>
         
@@ -60,7 +60,7 @@ export default function Home() {
           </div>
           <Link 
             href="/admin/login" 
-            className="flex items-center gap-1.5 px-3 py-1 rounded border border-border/50 text-[10px] uppercase tracking-wider hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive transition-all group"
+            className="flex items-center gap-1.5 px-3 py-1 rounded border border-border/50 text-[10px] uppercase tracking-wider hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all group"
           >
             <ShieldAlert className="h-3 w-3 opacity-50 group-hover:opacity-100" /> Admin Terminal Access
           </Link>

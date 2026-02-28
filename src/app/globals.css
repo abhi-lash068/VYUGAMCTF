@@ -1,30 +1,29 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 249 17% 11%;
-    --foreground: 210 40% 98%;
-    --card: 249 17% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 249 17% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 247 89% 67%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 249 10% 20%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 249 10% 20%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 205 100% 90%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --background: 142 76% 3%;
+    --foreground: 142 76% 95%;
+    --card: 142 76% 5%;
+    --card-foreground: 142 76% 95%;
+    --popover: 142 76% 3%;
+    --popover-foreground: 142 76% 95%;
+    --primary: 142 76% 50%;
+    --primary-foreground: 142 76% 5%;
+    --secondary: 142 76% 12%;
+    --secondary-foreground: 142 76% 95%;
+    --muted: 142 76% 12%;
+    --muted-foreground: 142 40% 60%;
+    --accent: 142 76% 15%;
+    --accent-foreground: 142 76% 95%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 249 10% 25%;
-    --input: 249 10% 25%;
-    --ring: 247 89% 67%;
-    --radius: 0.75rem;
+    --border: 142 76% 15%;
+    --input: 142 76% 15%;
+    --ring: 142 76% 50%;
+    --radius: 0.5rem;
   }
 }
 
@@ -35,18 +34,18 @@
   body {
     @apply bg-background text-foreground font-body;
     background-image: 
-      radial-gradient(at 0% 0%, hsla(247, 89%, 67%, 0.05) 0, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(205, 100%, 90%, 0.05) 0, transparent 50%);
+      radial-gradient(at 0% 0%, hsla(142, 76%, 50%, 0.07) 0, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(142, 76%, 30%, 0.07) 0, transparent 50%);
   }
 }
 
 @layer components {
   .neon-glow {
-    box-shadow: 0 0 15px hsla(247, 89%, 67%, 0.3);
+    box-shadow: 0 0 15px hsla(142, 76%, 50%, 0.3);
   }
   .neon-border {
-    border-color: hsla(247, 89%, 67%, 0.5);
-    box-shadow: 0 0 10px hsla(247, 89%, 67%, 0.2);
+    border-color: hsla(142, 76%, 50%, 0.5);
+    box-shadow: 0 0 10px hsla(142, 76%, 50%, 0.2);
   }
   .cyber-card {
     @apply bg-card border border-border/50 hover:border-primary/50 transition-all duration-300;
@@ -59,4 +58,24 @@
 
 .font-code {
   font-family: 'Source Code Pro', monospace;
+}
+
+/* Custom terminal flicker effect */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+body::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+  z-index: 9999;
+  pointer-events: none;
+  background-size: 100% 2px, 3px 100%;
 }
