@@ -16,6 +16,12 @@ const COMMANDS = [
 export function TerminalEffect() {
   const [lines, setLines] = useState<string[]>([]);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
+  const [sessionId, setSessionId] = useState<string>('');
+
+  useEffect(() => {
+    // Generate session ID only on the client to avoid hydration mismatch
+    setSessionId(Math.random().toString(36).substr(2, 9).toUpperCase());
+  }, []);
 
   useEffect(() => {
     if (currentLineIndex < COMMANDS.length) {
@@ -38,7 +44,7 @@ export function TerminalEffect() {
         ))}
       </div>
       <div className="absolute bottom-2 right-4 text-[10px] text-primary/40 uppercase tracking-tighter">
-        Secure Terminal Access // Session ID: {Math.random().toString(36).substr(2, 9)}
+        Secure Terminal Access // Session ID: {sessionId || 'BOOTING...'}
       </div>
     </div>
   );
