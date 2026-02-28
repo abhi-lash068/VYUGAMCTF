@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -24,7 +23,8 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
-  const user = { name: 'Player One', role: 'player' }; // Mock user
+  // Mock user as admin for prototype demonstration purposes
+  const user = { name: 'Player One', role: 'admin' }; 
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
@@ -87,8 +87,10 @@ export function Navbar() {
                 </Link>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" /> Logout
+              <DropdownMenuItem asChild className="text-destructive cursor-pointer">
+                <Link href="/auth/login" className="flex items-center">
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
