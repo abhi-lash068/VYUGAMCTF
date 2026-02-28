@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "ctf-hero",
+      "description": "Cybersecurity hacker theme background",
+      "imageUrl": "https://images.unsplash.com/photo-1608452964553-9b4d97b2752f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjeWJlcnNlY3VyaXR5JTIwaGFja2VyfGVufDB8fHx8MTc3MjI1Mzk3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cybersecurity hacker"
+    },
+    {
+      "id": "web-cat",
+      "description": "Web security category icon",
+      "imageUrl": "https://images.unsplash.com/photo-1585384107568-5bc588c7eefd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3ZWIlMjBjb2RlfGVufDB8fHx8MTc3MjIyNzc3NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "web code"
+    },
+    {
+      "id": "crypto-cat",
+      "description": "Cryptography category icon",
+      "imageUrl": "https://images.unsplash.com/photo-1617240016072-d92174e44171?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjcnlwdG9ncmFwaHklMjBkYXRhfGVufDB8fHx8MTc3MjI1Mzk3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cryptography data"
+    },
+    {
+      "id": "osint-cat",
+      "description": "OSINT category icon",
+      "imageUrl": "https://images.unsplash.com/photo-1584463699043-740c40f783d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdXJ2ZWlsbGFuY2UlMjBtYXB8ZW58MHx8fHwxNzcyMjUzOTcyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "surveillance map"
+    },
+    {
+      "id": "forensics-cat",
+      "description": "Digital forensics category icon",
+      "imageUrl": "https://images.unsplash.com/photo-1652795385719-3164c3dd8d14?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtYWduaWZ5aW5nJTIwZ2xhc3MlMjBkaWdpdGFsfGVufDB8fHx8MTc3MjI1Mzk3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "magnifying glass digital"
+    }
+  ]
 }
