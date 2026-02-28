@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Shield, Plus, Edit, Trash2, FileDown, Activity, 
-  Settings, Users, AlertCircle, Send, Lock, Globe, Save
+  Settings, Users, AlertCircle, Send, Lock, Globe, Save, Link as LinkIcon, FileArchive
 } from 'lucide-react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -34,12 +34,14 @@ interface Challenge {
   solves: number;
   description: string;
   flag: string;
+  externalLink?: string;
+  fileUrl?: string;
 }
 
 const INITIAL_CHALLENGES: Challenge[] = [
-  { id: '1', title: 'The Hidden Vault', category: 'Web', points: 100, solves: 12, description: 'Find the hidden admin credentials in the source.', flag: 'VYUGAM{view_source_is_not_enough}' },
-  { id: '2', title: 'Echoes in the Dark', category: 'Crypto', points: 250, solves: 5, description: 'The signal is encrypted with a simple shift. BMZNHNS{...}', flag: 'VYUGAM{caesar_is_proud}' },
-  { id: '3', title: 'Lost Signal', category: 'Forensics', points: 500, solves: 2, description: 'Analyze the pcap file to recover the transmitted data.', flag: 'VYUGAM{pcap_analysis_master}' },
+  { id: '1', title: 'The Hidden Vault', category: 'Web', points: 100, solves: 12, description: 'Find the hidden admin credentials in the source.', flag: 'VYUGAM{view_source_is_not_enough}', externalLink: 'https://vault.vyugam.live' },
+  { id: '2', title: 'Echoes in the Dark', category: 'Crypto', points: 250, solves: 5, description: 'The signal is encrypted with a simple shift. BMZNHNS{...}', flag: 'VYUGAM{caesar_is_proud}', fileUrl: 'https://files.vyugam.live/signal.zip' },
+  { id: '3', title: 'Lost Signal', category: 'Forensics', points: 500, solves: 2, description: 'Analyze the pcap file to recover the transmitted data.', flag: 'VYUGAM{pcap_analysis_master}', fileUrl: 'https://files.vyugam.live/traffic.pcap' },
 ];
 
 export default function AdminDashboard() {
@@ -56,7 +58,9 @@ export default function AdminDashboard() {
     category: 'Web',
     points: 100,
     description: '',
-    flag: ''
+    flag: '',
+    externalLink: '',
+    fileUrl: ''
   });
 
   useEffect(() => {
@@ -70,7 +74,6 @@ export default function AdminDashboard() {
       router.push('/');
     } else {
       setIsAuthorized(true);
-      // Load custom challenges from localStorage if they exist
       const saved = localStorage.getItem('ctf_challenges');
       if (saved) {
         try {
@@ -93,7 +96,9 @@ export default function AdminDashboard() {
       category: 'Web',
       points: 100,
       description: '',
-      flag: ''
+      flag: '',
+      externalLink: '',
+      fileUrl: ''
     });
     setIsOpen(true);
   };
@@ -185,7 +190,7 @@ export default function AdminDashboard() {
                       {editMode ? 'Update' : 'Deploy New'} <span className="text-primary">Challenge</span>
                     </DialogTitle>
                     <DialogDescription>
-                      {editMode ? 'Modify the existing challenge parameters.' : 'Configure the parameters for a new security laboratory.'}
+                      Configure the parameters for a security laboratory. Attach external links or file resources for participants.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
@@ -239,10 +244,32 @@ export default function AdminDashboard() {
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
+                      <label className="text-right text-sm font-medium flex items-center justify-end gap-1">
+                        <Globe className="h-3 w-3" /> Instance
+                      </label>
+                      <Input 
+                        placeholder="https://..." 
+                        className="col-span-3 bg-background" 
+                        value={currentChallenge.externalLink}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, externalLink: e.target.value})}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label className="text-right text-sm font-medium flex items-center justify-end gap-1">
+                        <FileArchive className="h-3 w-3" /> File URL
+                      </label>
+                      <Input 
+                        placeholder="URL to challenge files" 
+                        className="col-span-3 bg-background" 
+                        value={currentChallenge.fileUrl}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, fileUrl: e.target.value})}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
                       <label className="text-right text-sm font-medium">Description</label>
                       <Textarea 
                         placeholder="Explain the vulnerability..." 
-                        className="col-span-3 bg-background min-h-[100px]" 
+                        className="col-span-3 bg-background min-h-[80px]" 
                         value={currentChallenge.description}
                         onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
                         required 
@@ -295,6 +322,7 @@ export default function AdminDashboard() {
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Points</TableHead>
                   <TableHead className="text-right">Solves</TableHead>
+                  <TableHead className="text-right">Resources</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -307,6 +335,12 @@ export default function AdminDashboard() {
                     </TableCell>
                     <TableCell className="text-right font-code">{ch.points}</TableCell>
                     <TableCell className="text-right font-code">{ch.solves}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {ch.externalLink && <Globe className="h-4 w-4 text-muted-foreground" title="External Link" />}
+                        {ch.fileUrl && <FileArchive className="h-4 w-4 text-muted-foreground" title="File Resource" />}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button 
@@ -329,103 +363,11 @@ export default function AdminDashboard() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {challenges.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                      No challenges deployed yet. Click "Create Challenge" to start.
-                    </TableCell>
-                  </TableRow>
-                )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="bg-card border-border/50">
-            <CardHeader>
-              <CardTitle className="font-headline text-lg flex items-center gap-2">
-                <TerminalIcon className="h-5 w-5 text-primary" /> System Logs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 font-code text-xs">
-                <div className="p-2 bg-background rounded border border-border/50 flex gap-3 animate-in fade-in duration-500">
-                  <span className="text-primary">[14:22:01]</span>
-                  <span className="text-green-400">SUCCESS:</span>
-                  <span>User 'CyberWiz' solved 'The Hidden Vault'</span>
-                </div>
-                <div className="p-2 bg-background rounded border border-border/50 flex gap-3">
-                  <span className="text-primary">[14:21:55]</span>
-                  <span className="text-destructive">FAILURE:</span>
-                  <span>Flag attempt mismatch from IP 192.168.1.45</span>
-                </div>
-                <div className="p-2 bg-background rounded border border-border/50 flex gap-3">
-                  <span className="text-primary">[14:20:12]</span>
-                  <span className="text-accent">INFO:</span>
-                  <span>Platform health check complete. All systems nominal.</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border/50">
-            <CardHeader>
-              <CardTitle className="font-headline text-lg flex items-center gap-2">
-                <Settings className="h-5 w-5 text-primary" /> Event Controls
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-border/30">
-                <div>
-                  <p className="font-bold flex items-center gap-2">
-                    <Lock className="h-4 w-4 text-orange-400" /> Submissions Lock
-                  </p>
-                  <p className="text-xs text-muted-foreground">Prevent any new flags from being submitted.</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="border-border hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                  onClick={() => handleGeneralAction('Submissions Lock')}
-                >
-                  Lock Now
-                </Button>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg border border-border/30">
-                <div>
-                  <p className="font-bold flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-primary" /> Maintenance Mode
-                  </p>
-                  <p className="text-xs text-muted-foreground">Redirect all users to a maintenance screen.</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="border-border hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => handleGeneralAction('Maintenance Mode')}
-                >
-                  Enable
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </main>
     </div>
   );
 }
-
-const TerminalIcon = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <polyline points="4 17 10 11 4 5" />
-    <line x1="12" y1="19" x2="20" y2="19" />
-  </svg>
-);

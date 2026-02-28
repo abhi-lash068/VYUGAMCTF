@@ -30,6 +30,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
       const result = await submitFlag(challenge.id, flagInput, 'u1');
       if (result.success) {
         toast({ title: 'Success!', description: result.message });
+        setFlagInput('');
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -93,10 +94,10 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
           <CardFooter className="pt-0 flex justify-between items-center text-xs text-muted-foreground font-code border-t border-border/20 mt-4 h-12">
             <div className="flex items-center gap-1">
               <Zap className="h-3 w-3 text-primary" />
-              {challenge.solvesCount} Solves
+              {challenge.solvesCount || 0} Solves
             </div>
-            <div className="flex items-center gap-1 group-hover:text-primary transition-colors">
-              Deploying... <Terminal className="h-3 w-3" />
+            <div className="flex items-center gap-1 group-hover:text-primary transition-colors uppercase tracking-wider">
+              {isSolved ? 'Completed' : 'Deploying...'} <Terminal className="h-3 w-3" />
             </div>
           </CardFooter>
         </Card>
@@ -108,7 +109,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
             <Badge variant="outline" className={getCategoryColor(challenge.category)}>
               {challenge.category}
             </Badge>
-            <span className="text-sm text-muted-foreground">{challenge.points} Points</span>
+            <span className="text-sm text-muted-foreground font-code">{challenge.points} Points</span>
           </div>
           <DialogTitle className="text-2xl font-headline font-bold text-foreground">
             {challenge.title}
@@ -121,21 +122,23 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
         <div className="space-y-6 py-4">
           <div className="flex flex-wrap gap-2">
             {challenge.externalLink && (
-              <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Button variant="outline" size="sm" className="gap-2 border-primary/30 hover:bg-primary/10" asChild>
                 <a href={challenge.externalLink} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4" /> Open Instance
                 </a>
               </Button>
             )}
             {challenge.fileUrl && (
-              <Button variant="outline" size="sm" className="gap-2">
-                <Download className="h-4 w-4" /> Download Files
+              <Button variant="outline" size="sm" className="gap-2 border-accent/30 hover:bg-accent/10" asChild>
+                <a href={challenge.fileUrl} target="_blank" rel="noopener noreferrer">
+                  <Download className="h-4 w-4" /> Download Files
+                </a>
               </Button>
             )}
             <Button 
               variant="ghost" 
               size="sm" 
-              className="gap-2 text-primary hover:text-primary/80" 
+              className="gap-2 text-primary hover:text-primary/80 hover:bg-primary/5" 
               onClick={handleHintRequest}
               disabled={isHintLoading || !!hint}
             >
@@ -169,7 +172,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
               />
               <Button 
                 onClick={handleFlagSubmit} 
-                className="neon-glow" 
+                className="neon-glow bg-primary" 
                 disabled={isSolved || isSubmitting || !flagInput}
               >
                 {isSubmitting ? 'Authenticating...' : <Send className="h-4 w-4" />}
@@ -178,14 +181,14 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
           </div>
         </div>
 
-        <DialogFooter className="text-xs text-muted-foreground font-code text-center sm:text-left">
+        <DialogFooter className="text-xs text-muted-foreground font-code text-center sm:text-left pt-4 border-t border-border/20">
           {isSolved ? (
-            <span className="text-green-400 flex items-center gap-1">
+            <span className="text-green-400 flex items-center gap-1 font-bold">
               <Unlock className="h-3 w-3" /> CHALLENGE ALREADY SOLVED
             </span>
           ) : (
             <span className="flex items-center gap-1">
-              <Lock className="h-3 w-3" /> CHALLENGE LOCKED - AWAITING FLAG
+              <Lock className="h-3 w-3 opacity-50" /> CHALLENGE LOCKED - AWAITING FLAG
             </span>
           )}
         </DialogFooter>
