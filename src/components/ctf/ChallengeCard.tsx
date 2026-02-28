@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
-import { Terminal, Unlock, ExternalLink, Download, Send, Zap, HelpCircle, Lock } from 'lucide-react';
+import { Terminal, Unlock, ExternalLink, Download, Send, Zap, HelpCircle, Lock, FileArchive } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { submitFlag, requestHint } from '@/app/actions/ctf-actions';
 import { cn } from '@/lib/utils';
+import { ChallengeFile } from '@/types';
 
 interface ChallengeCardProps {
   challenge: any;
@@ -65,6 +65,8 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
     }
   };
 
+  const files: ChallengeFile[] = challenge.files || [];
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -101,6 +103,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
               {challenge.solvesCount || 0} Solves
             </div>
             <div className="flex items-center gap-1 group-hover:text-primary transition-colors uppercase tracking-wider">
+              {files.length > 0 && <FileArchive className="h-3 w-3 mr-1" />}
               {isSolved ? 'Completed' : 'Deploying...'} <Terminal className="h-3 w-3" />
             </div>
           </CardFooter>
@@ -132,13 +135,15 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
                 </a>
               </Button>
             )}
-            {challenge.fileUrl && (
-              <Button variant="outline" size="sm" className="gap-2 border-accent/30 hover:bg-accent/10" asChild>
-                <a href={challenge.fileUrl} target="_blank" rel="noopener noreferrer">
-                  <Download className="h-4 w-4" /> Download Files
+            
+            {files.map((file, idx) => (
+              <Button key={idx} variant="outline" size="sm" className="gap-2 border-accent/30 hover:bg-accent/10" asChild>
+                <a href={file.url} target="_blank" rel="noopener noreferrer">
+                  <Download className="h-4 w-4" /> {file.name || 'Download File'}
                 </a>
               </Button>
-            )}
+            ))}
+
             <Button 
               variant="ghost" 
               size="sm" 
@@ -185,7 +190,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
           </div>
         </div>
 
-        <DialogFooter className="text-xs text-muted-foreground font-code text-center sm:text-left pt-4 border-t border-border/20">
+        <DialogFooter className="text-xs text-muted-foreground font-code pt-4 border-t border-border/20">
           {isSolved ? (
             <span className="text-green-400 flex items-center gap-1 font-bold">
               <Unlock className="h-3 w-3" /> CHALLENGE ALREADY SOLVED

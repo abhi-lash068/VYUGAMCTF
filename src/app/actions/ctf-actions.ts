@@ -22,7 +22,10 @@ let mockChallenges: any[] = [
     description: 'The signal is encrypted with a simple shift. BMZNHNS{...}', 
     flag: 'VYUGAM{caesar_is_proud}', 
     solvesCount: 5,
-    fileUrl: 'https://files.vyugam.live/signal.zip'
+    files: [
+      { name: 'signal.zip', url: 'https://files.vyugam.live/signal.zip' },
+      { name: 'public_key.txt', url: 'https://files.vyugam.live/pub.txt' }
+    ]
   },
   { 
     id: '3', 
@@ -32,7 +35,9 @@ let mockChallenges: any[] = [
     description: 'Analyze the pcap file to recover the transmitted data.', 
     flag: 'VYUGAM{pcap_analysis_master}', 
     solvesCount: 2,
-    fileUrl: 'https://files.vyugam.live/traffic.pcap'
+    files: [
+      { name: 'traffic.pcap', url: 'https://files.vyugam.live/traffic.pcap' }
+    ]
   },
   { 
     id: '4', 
@@ -93,6 +98,5 @@ export async function getLeaderboard() {
 }
 
 export async function getChallenges() {
-  // Return current challenges, optionally merging with local modifications for prototype
   return mockChallenges.map(({ flag, ...rest }) => rest);
 }

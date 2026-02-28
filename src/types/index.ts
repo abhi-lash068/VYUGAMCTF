@@ -15,6 +15,11 @@ export interface User {
 
 export type ChallengeCategory = 'Web' | 'Crypto' | 'OSINT' | 'Forensics' | 'AI Security' | 'Misc' | 'DEBUG' | 'General';
 
+export interface ChallengeFile {
+  name: string;
+  url: string;
+}
+
 export interface Challenge {
   id: string;
   title: string;
@@ -22,7 +27,7 @@ export interface Challenge {
   points: number;
   category: ChallengeCategory;
   flag?: string; // Hashed or protected on server-side
-  fileUrl?: string;
+  files?: ChallengeFile[];
   externalLink?: string;
   isLocked?: boolean;
   requiredChallengeId?: string;

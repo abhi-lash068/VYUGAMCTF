@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Shield, Plus, Edit, Trash2, FileDown, Activity, 
-  Settings, Users, AlertCircle, Send, Globe, Save, FileArchive
+  Settings, Users, AlertCircle, Send, Globe, Save, FileArchive, X
 } from 'lucide-react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -26,6 +25,7 @@ import {
   SelectTrigger, SelectValue 
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { ChallengeFile } from '@/types';
 
 interface Challenge {
   id: string;
@@ -36,20 +36,20 @@ interface Challenge {
   description: string;
   flag: string;
   externalLink?: string;
-  fileUrl?: string;
+  files?: ChallengeFile[];
 }
 
 const INITIAL_CHALLENGES: Challenge[] = [
   { id: '1', title: 'The Hidden Vault', category: 'Web', points: 100, solves: 12, description: 'Find the hidden admin credentials in the source.', flag: 'VYUGAM{view_source_is_not_enough}', externalLink: 'https://vault.vyugam.live' },
-  { id: '2', title: 'Echoes in the Dark', category: 'Crypto', points: 250, solves: 5, description: 'The signal is encrypted with a simple shift. BMZNHNS{...}', flag: 'VYUGAM{caesar_is_proud}', fileUrl: 'https://files.vyugam.live/signal.zip' },
-  { id: '3', title: 'Lost Signal', category: 'Forensics', points: 500, solves: 2, description: 'Analyze the pcap file to recover the transmitted data.', flag: 'VYUGAM{pcap_analysis_master}', fileUrl: 'https://files.vyugam.live/traffic.pcap' },
+  { id: '2', title: 'Echoes in the Dark', category: 'Crypto', points: 250, solves: 5, description: 'The signal is encrypted with a simple shift. BMZNHNS{...}', flag: 'VYUGAM{caesar_is_proud}', files: [{ name: 'signal.zip', url: 'https://files.vyugam.live/signal.zip' }] },
+  { id: '3', title: 'Lost Signal', category: 'Forensics', points: 500, solves: 2, description: 'Analyze the pcap file to recover the transmitted data.', flag: 'VYUGAM{pcap_analysis_master}', files: [{ name: 'traffic.pcap', url: 'https://files.vyugam.live/traffic.pcap' }] },
 ];
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { toast } = useToast();
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [challenges, setChallenges] = useState<Challenge[]>(INITIAL_CHALLENGES);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
   
   const [isOpen, setIsOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
     description: '',
     flag: '',
     externalLink: '',
-    fileUrl: ''
+    files: []
   });
 
   useEffect(() => {
@@ -79,8 +79,10 @@ export default function AdminDashboard() {
         try {
           setChallenges(JSON.parse(saved));
         } catch (e) {
-          console.error("Failed to load challenges", e);
+          setChallenges(INITIAL_CHALLENGES);
         }
+      } else {
+        setChallenges(INITIAL_CHALLENGES);
       }
     }
   }, [router, toast]);
@@ -98,15 +100,35 @@ export default function AdminDashboard() {
       description: '',
       flag: '',
       externalLink: '',
-      fileUrl: ''
+      files: []
     });
     setIsOpen(true);
   };
 
   const handleOpenEdit = (challenge: Challenge) => {
     setEditMode(true);
-    setCurrentChallenge(challenge);
+    setCurrentChallenge({
+      ...challenge,
+      files: challenge.files || []
+    });
     setIsOpen(true);
+  };
+
+  const handleAddFile = () => {
+    const files = [...(currentChallenge.files || []), { name: '', url: '' }];
+    setCurrentChallenge({ ...currentChallenge, files });
+  };
+
+  const handleRemoveFile = (index: number) => {
+    const files = (currentChallenge.files || []).filter((_, i) => i !== index);
+    setCurrentChallenge({ ...currentChallenge, files });
+  };
+
+  const handleFileChange = (index: number, field: keyof ChallengeFile, value: string) => {
+    const files = (currentChallenge.files || []).map((file, i) => 
+      i === index ? { ...file, [field]: value } : file
+    );
+    setCurrentChallenge({ ...currentChallenge, files });
   };
 
   const handleDelete = (id: string) => {
@@ -123,40 +145,31 @@ export default function AdminDashboard() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Filter out incomplete file entries
+    const sanitizedFiles = (currentChallenge.files || []).filter(f => f.name.trim() && f.url.trim());
+    
     if (editMode && currentChallenge.id) {
       const updated = challenges.map(c => 
-        c.id === currentChallenge.id ? (currentChallenge as Challenge) : c
+        c.id === currentChallenge.id ? ({ ...currentChallenge, files: sanitizedFiles } as Challenge) : c
       );
       setChallenges(updated);
       saveToStorage(updated);
-      toast({
-        title: "Challenge Updated",
-        description: `${currentChallenge.title} has been updated successfully.`,
-      });
+      toast({ title: "Challenge Updated" });
     } else {
       const newChallenge: Challenge = {
-        ...(currentChallenge as Omit<Challenge, 'id' | 'solves'>),
+        ...currentChallenge,
         id: Math.random().toString(36).substr(2, 9),
-        solves: 0
+        solves: 0,
+        files: sanitizedFiles
       } as Challenge;
       
       const updated = [...challenges, newChallenge];
       setChallenges(updated);
       saveToStorage(updated);
-      toast({
-        title: "Challenge Deployed",
-        description: `${newChallenge.title} is now live.`,
-      });
+      toast({ title: "Challenge Deployed" });
     }
     
     setIsOpen(false);
-  };
-
-  const handleGeneralAction = (action: string) => {
-    toast({
-      title: "Action Initiated",
-      description: `The ${action} command has been sent to the primary server.`,
-    });
   };
 
   if (!isAuthorized) return null;
@@ -164,131 +177,145 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto py-8 px-4 space-y-8 animate-in fade-in duration-700">
+      <main className="container mx-auto py-8 px-4 space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-headline font-bold flex items-center gap-2">
               <Shield className="h-8 w-8 text-primary" /> Command <span className="text-primary">Center</span>
             </h1>
-            <p className="text-muted-foreground">Manage challenges, monitor activity, and oversee event security.</p>
+            <p className="text-muted-foreground">Manage challenges and oversee event security.</p>
           </div>
-          <div className="flex gap-2">
-             <Button variant="outline" className="border-border" onClick={() => handleGeneralAction('Export')}>
-              <FileDown className="mr-2 h-4 w-4" /> Export Results
-            </Button>
-            
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button className="neon-glow" onClick={handleOpenCreate}>
-                  <Plus className="mr-2 h-4 w-4" /> Create Challenge
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[525px] bg-card border-border">
-                <form onSubmit={handleSubmit}>
-                  <DialogHeader>
-                    <DialogTitle className="font-headline text-2xl">
-                      {editMode ? 'Update' : 'Deploy New'} <span className="text-primary">Challenge</span>
-                    </DialogTitle>
-                    <DialogDescription>
-                      Configure the parameters for a security laboratory.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label className="text-right text-sm font-medium">Title</label>
-                      <Input 
-                        placeholder="Enter challenge name" 
-                        className="col-span-3 bg-background" 
-                        value={currentChallenge.title}
-                        onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
-                        required 
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label className="text-right text-sm font-medium">Category</label>
-                      <Select 
-                        value={currentChallenge.category} 
-                        onValueChange={(val) => setCurrentChallenge({...currentChallenge, category: val})}
-                      >
-                        <SelectTrigger className="col-span-3 bg-background">
-                          <SelectValue placeholder="Select Category" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-card border-border">
-                          <SelectItem value="Web">Web Exploitation</SelectItem>
-                          <SelectItem value="Crypto">Cryptography</SelectItem>
-                          <SelectItem value="Forensics">Digital Forensics</SelectItem>
-                          <SelectItem value="OSINT">OSINT</SelectItem>
-                          <SelectItem value="DEBUG">Debugging</SelectItem>
-                          <SelectItem value="AI Security">AI Security</SelectItem>
-                          <SelectItem value="General">General Knowledge</SelectItem>
-                          <SelectItem value="Misc">Miscellaneous</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label className="text-right text-sm font-medium">Points</label>
-                      <Input 
-                        type="number" 
-                        placeholder="100" 
-                        className="col-span-3 bg-background" 
-                        value={currentChallenge.points}
-                        onChange={(e) => setCurrentChallenge({...currentChallenge, points: parseInt(e.target.value) || 0})}
-                        required 
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label className="text-right text-sm font-medium">Flag</label>
-                      <Input 
-                        placeholder="VYUGAM{...}" 
-                        className="col-span-3 bg-background font-code" 
-                        value={currentChallenge.flag}
-                        onChange={(e) => setCurrentChallenge({...currentChallenge, flag: e.target.value})}
-                        required 
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label className="text-right text-sm font-medium flex items-center justify-end gap-1">
-                        <Globe className="h-3 w-3" /> Instance
-                      </label>
-                      <Input 
-                        placeholder="https://..." 
-                        className="col-span-3 bg-background" 
-                        value={currentChallenge.externalLink}
-                        onChange={(e) => setCurrentChallenge({...currentChallenge, externalLink: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label className="text-right text-sm font-medium flex items-center justify-end gap-1">
-                        <FileArchive className="h-3 w-3" /> File URL
-                      </label>
-                      <Input 
-                        placeholder="URL to challenge files" 
-                        className="col-span-3 bg-background" 
-                        value={currentChallenge.fileUrl}
-                        onChange={(e) => setCurrentChallenge({...currentChallenge, fileUrl: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label className="text-right text-sm font-medium">Description</label>
-                      <Textarea 
-                        placeholder="Explain the vulnerability..." 
-                        className="col-span-3 bg-background min-h-[80px]" 
-                        value={currentChallenge.description}
-                        onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
-                        required 
-                      />
-                    </div>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button className="neon-glow" onClick={handleOpenCreate}>
+                <Plus className="mr-2 h-4 w-4" /> Create Challenge
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] bg-card border-border max-h-[90vh] overflow-y-auto">
+              <form onSubmit={handleSubmit}>
+                <DialogHeader>
+                  <DialogTitle className="font-headline text-2xl">
+                    {editMode ? 'Update' : 'Deploy New'} <span className="text-primary">Challenge</span>
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label className="text-right text-sm font-medium">Title</label>
+                    <Input 
+                      placeholder="Challenge name" 
+                      className="col-span-3 bg-background" 
+                      value={currentChallenge.title}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
+                      required 
+                    />
                   </div>
-                  <DialogFooter>
-                    <Button type="submit" className="neon-glow w-full sm:w-auto">
-                      {editMode ? 'Save Changes' : 'Initialize Deployment'} 
-                      {editMode ? <Save className="ml-2 h-4 w-4" /> : <Send className="ml-2 h-4 w-4" />}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label className="text-right text-sm font-medium">Category</label>
+                    <Select 
+                      value={currentChallenge.category} 
+                      onValueChange={(val) => setCurrentChallenge({...currentChallenge, category: val})}
+                    >
+                      <SelectTrigger className="col-span-3 bg-background">
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="Web">Web Exploitation</SelectItem>
+                        <SelectItem value="Crypto">Cryptography</SelectItem>
+                        <SelectItem value="Forensics">Digital Forensics</SelectItem>
+                        <SelectItem value="OSINT">OSINT</SelectItem>
+                        <SelectItem value="DEBUG">Debugging</SelectItem>
+                        <SelectItem value="AI Security">AI Security</SelectItem>
+                        <SelectItem value="General">General Knowledge</SelectItem>
+                        <SelectItem value="Misc">Miscellaneous</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label className="text-right text-sm font-medium">Points</label>
+                    <Input 
+                      type="number" 
+                      className="col-span-3 bg-background" 
+                      value={currentChallenge.points}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, points: parseInt(e.target.value) || 0})}
+                      required 
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label className="text-right text-sm font-medium">Flag</label>
+                    <Input 
+                      placeholder="VYUGAM{...}" 
+                      className="col-span-3 bg-background font-code" 
+                      value={currentChallenge.flag}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, flag: e.target.value})}
+                      required 
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label className="text-right text-sm font-medium">Instance</label>
+                    <Input 
+                      placeholder="https://..." 
+                      className="col-span-3 bg-background" 
+                      value={currentChallenge.externalLink}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, externalLink: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-3 border-t border-border pt-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-sm font-bold flex items-center gap-2">
+                        <FileArchive className="h-4 w-4" /> Challenge Files
+                      </h3>
+                      <Button type="button" variant="outline" size="sm" onClick={handleAddFile}>
+                        <Plus className="h-3 w-3 mr-1" /> Add File
+                      </Button>
+                    </div>
+                    {(currentChallenge.files || []).map((file, idx) => (
+                      <div key={idx} className="flex gap-2 items-start bg-secondary/20 p-2 rounded-md">
+                        <div className="flex-1 space-y-2">
+                          <Input 
+                            placeholder="File name (e.g. data.zip)" 
+                            className="h-8 text-xs bg-background"
+                            value={file.name}
+                            onChange={(e) => handleFileChange(idx, 'name', e.target.value)}
+                          />
+                          <Input 
+                            placeholder="File URL" 
+                            className="h-8 text-xs bg-background"
+                            value={file.url}
+                            onChange={(e) => handleFileChange(idx, 'url', e.target.value)}
+                          />
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive" 
+                          onClick={() => handleRemoveFile(idx)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label className="text-right text-sm font-medium">Description</label>
+                    <Textarea 
+                      className="col-span-3 bg-background min-h-[80px]" 
+                      value={currentChallenge.description}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
+                      required 
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" className="neon-glow w-full">
+                    {editMode ? 'Save Changes' : 'Initialize Deployment'} 
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -311,52 +338,37 @@ export default function AdminDashboard() {
         </div>
 
         <Card className="bg-card border-border/50">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle className="font-headline">Challenge Inventory</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow className="border-border hover:bg-transparent">
+                <TableRow className="border-border">
                   <TableHead>Challenge Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Points</TableHead>
-                  <TableHead className="text-right">Solves</TableHead>
-                  <TableHead className="text-right">Resources</TableHead>
+                  <TableHead className="text-right">Files</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {challenges.map((ch) => (
-                  <TableRow key={ch.id} className="border-border group">
-                    <TableCell className="font-bold group-hover:text-primary transition-colors">{ch.title}</TableCell>
+                  <TableRow key={ch.id} className="border-border">
+                    <TableCell className="font-bold">{ch.title}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px] uppercase border-primary/20">{ch.category}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-code">{ch.points}</TableCell>
-                    <TableCell className="text-right font-code">{ch.solves}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {ch.externalLink && <Globe className="h-4 w-4 text-muted-foreground" title="External Link" />}
-                        {ch.fileUrl && <FileArchive className="h-4 w-4 text-muted-foreground" title="File Resource" />}
-                      </div>
+                      <span className="text-xs font-code">{ch.files?.length || 0}</span>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 hover:text-primary"
-                          onClick={() => handleOpenEdit(ch)}
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenEdit(ch)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 hover:text-destructive"
-                          onClick={() => handleDelete(ch.id)}
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(ch.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
