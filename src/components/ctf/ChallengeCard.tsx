@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -42,7 +41,7 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
   const handleHintRequest = async () => {
     setIsHintLoading(true);
     try {
-      const result = await requestHint(challenge.description);
+      const result = await requestHint(challenge.id, challenge.description);
       if (result.success) {
         setHint(result.hint || 'No hint available.');
       }
