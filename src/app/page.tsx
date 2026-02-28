@@ -25,39 +25,20 @@ export default function Home() {
           The ultimate inter-college cybersecurity battleground. Decode. Exploit. Conquer. Are you ready to breach the perimeter?
         </p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full max-w-5xl mb-16">
-          <div className="text-left space-y-6">
-            <h2 className="text-3xl font-headline font-bold text-primary">System Initialization...</h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4 p-4 rounded-lg bg-card/50 border border-border">
-                <Zap className="h-6 w-6 text-primary shrink-0" />
-                <div>
-                  <h3 className="font-bold">Rapid Deployment</h3>
-                  <p className="text-sm text-muted-foreground">Instantly access virtual labs and attack targets across various security domains.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 p-4 rounded-lg bg-card/50 border border-border">
-                <Trophy className="h-6 w-6 text-primary shrink-0" />
-                <div>
-                  <h3 className="font-bold">Elite Recognition</h3>
-                  <p className="text-sm text-muted-foreground">Climb the leaderboard and prove your skills to the top security firms.</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button asChild size="lg" className="h-14 px-8 neon-glow bg-primary hover:bg-primary/90 text-lg flex-1">
-                <Link href="/auth/register">
-                  Join the Battle <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="h-14 px-8 border-border hover:bg-secondary text-lg flex-1">
-                <Link href="/auth/login">Player Login</Link>
-              </Button>
-            </div>
-          </div>
-          
+        <div className="flex flex-col items-center w-full max-w-3xl mb-16 space-y-12">
           <div className="w-full">
             <TerminalEffect />
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
+            <Button asChild size="lg" className="h-14 px-8 neon-glow bg-primary hover:bg-primary/90 text-lg flex-1">
+              <Link href="/auth/register">
+                Join the Battle <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="h-14 px-8 border-border hover:bg-secondary text-lg flex-1">
+              <Link href="/auth/login">Player Login</Link>
+            </Button>
           </div>
         </div>
 
