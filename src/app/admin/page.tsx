@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Shield, Plus, Edit, Trash2, FileDown, Activity, 
-  Settings, Users, AlertCircle, Send, Lock, Globe, Save, Link as LinkIcon, FileArchive
+  Settings, Users, AlertCircle, Send, Globe, Save, FileArchive
 } from 'lucide-react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -50,7 +51,6 @@ export default function AdminDashboard() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [challenges, setChallenges] = useState<Challenge[]>(INITIAL_CHALLENGES);
   
-  // Dialog State
   const [isOpen, setIsOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentChallenge, setCurrentChallenge] = useState<Partial<Challenge>>({
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                       {editMode ? 'Update' : 'Deploy New'} <span className="text-primary">Challenge</span>
                     </DialogTitle>
                     <DialogDescription>
-                      Configure the parameters for a security laboratory. Attach external links or file resources for participants.
+                      Configure the parameters for a security laboratory.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
@@ -217,7 +217,10 @@ export default function AdminDashboard() {
                           <SelectItem value="Web">Web Exploitation</SelectItem>
                           <SelectItem value="Crypto">Cryptography</SelectItem>
                           <SelectItem value="Forensics">Digital Forensics</SelectItem>
+                          <SelectItem value="OSINT">OSINT</SelectItem>
+                          <SelectItem value="DEBUG">Debugging</SelectItem>
                           <SelectItem value="AI Security">AI Security</SelectItem>
+                          <SelectItem value="General">General Knowledge</SelectItem>
                           <SelectItem value="Misc">Miscellaneous</SelectItem>
                         </SelectContent>
                       </Select>
@@ -310,9 +313,6 @@ export default function AdminDashboard() {
         <Card className="bg-card border-border/50">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-headline">Challenge Inventory</CardTitle>
-            <div className="relative w-64">
-              <Input placeholder="Filter challenges..." className="h-8 bg-background border-border text-xs" />
-            </div>
           </CardHeader>
           <CardContent>
             <Table>

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { ChallengeCard } from '@/components/ctf/ChallengeCard';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, Terminal, Globe, Shield, Database, Cpu, Box } from 'lucide-react';
+import { Search, Terminal, Globe, Shield, Database, Cpu, Box, Bug, Info, SearchCode } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getChallenges } from '@/app/actions/ctf-actions';
 
@@ -23,7 +23,10 @@ export default function Challenges() {
     { name: 'Web', icon: Globe },
     { name: 'Crypto', icon: Shield },
     { name: 'Forensics', icon: Database },
+    { name: 'OSINT', icon: SearchCode },
+    { name: 'DEBUG', icon: Bug },
     { name: 'AI Security', icon: Cpu },
+    { name: 'General', icon: Info },
     { name: 'Misc', icon: Terminal },
   ];
 

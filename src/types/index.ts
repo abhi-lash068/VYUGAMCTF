@@ -13,7 +13,7 @@ export interface User {
   createdAt: number;
 }
 
-export type ChallengeCategory = 'Web' | 'Crypto' | 'OSINT' | 'Forensics' | 'AI Security' | 'Misc';
+export type ChallengeCategory = 'Web' | 'Crypto' | 'OSINT' | 'Forensics' | 'AI Security' | 'Misc' | 'DEBUG' | 'General';
 
 export interface Challenge {
   id: string;

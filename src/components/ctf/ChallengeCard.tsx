@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
-import { Terminal, Lock, Unlock, ExternalLink, Download, Send, Zap, HelpCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Terminal, Unlock, ExternalLink, Download, Send, Zap, HelpCircle, Lock } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,6 +58,9 @@ export function ChallengeCard({ challenge, isSolved = false }: ChallengeCardProp
       case 'Crypto': return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
       case 'Forensics': return 'bg-green-500/20 text-green-400 border-green-500/50';
       case 'AI Security': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50';
+      case 'OSINT': return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
+      case 'DEBUG': return 'bg-red-500/20 text-red-400 border-red-500/50';
+      case 'General': return 'bg-amber-500/20 text-amber-400 border-amber-500/50';
       default: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
     }
   };
