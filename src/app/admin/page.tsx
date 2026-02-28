@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  Shield, Plus, Edit, Trash2, FileDown, Activity, 
-  Settings, Users, AlertCircle, Send, Globe, Save, FileArchive, X,
-  Search, UserCog, Ban, CheckCircle2
+  Shield, Plus, Edit, Trash2, Activity, 
+  Users, Globe, FileArchive, X,
+  Search, UserCog, Ban, CheckCircle2, UserPlus
 } from 'lucide-react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { 
   Dialog, DialogContent, DialogDescription, 
-  DialogFooter, DialogHeader, DialogTitle, DialogTrigger 
+  DialogFooter, DialogHeader, DialogTitle 
 } from '@/components/ui/dialog';
 import { 
   Select, SelectContent, SelectItem, 
@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { ChallengeFile, User } from '@/types';
+import { ChallengeFile, User, UserRole } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Challenge {
@@ -64,7 +64,8 @@ export default function AdminDashboard() {
   
   const [isChallengeOpen, setIsChallengeOpen] = useState(false);
   const [isUserEditOpen, setIsUserEditOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [challengeEditMode, setChallengeEditMode] = useState(false);
+  const [userEditMode, setUserEditMode] = useState(false);
   
   const [currentChallenge, setCurrentChallenge] = useState<Partial<Challenge>>({
     title: '',
@@ -76,7 +77,14 @@ export default function AdminDashboard() {
     files: []
   });
 
-  const [selectedUser, setSelectedUser] = useState<Partial<User>>({});
+  const [selectedUser, setSelectedUser] = useState<Partial<User>>({
+    name: '',
+    email: '',
+    college: '',
+    score: 0,
+    role: 'player',
+    solvedChallenges: []
+  });
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -90,13 +98,11 @@ export default function AdminDashboard() {
     } else {
       setIsAuthorized(true);
       
-      // Load Challenges
       const savedChallenges = localStorage.getItem('ctf_challenges');
       if (savedChallenges) {
         try { setChallenges(JSON.parse(savedChallenges)); } catch (e) { setChallenges(INITIAL_CHALLENGES); }
       } else { setChallenges(INITIAL_CHALLENGES); }
 
-      // Load Users
       const savedUsers = localStorage.getItem('ctf_users');
       if (savedUsers) {
         try { setUsers(JSON.parse(savedUsers)); } catch (e) { setUsers(INITIAL_USERS); }
@@ -114,15 +120,14 @@ export default function AdminDashboard() {
     localStorage.setItem('ctf_users', JSON.stringify(list));
   };
 
-  // Challenge Handlers
   const handleOpenCreateChallenge = () => {
-    setEditMode(false);
+    setChallengeEditMode(false);
     setCurrentChallenge({ title: '', category: 'Web', points: 100, description: '', flag: '', externalLink: '', files: [] });
     setIsChallengeOpen(true);
   };
 
   const handleOpenEditChallenge = (challenge: Challenge) => {
-    setEditMode(true);
+    setChallengeEditMode(true);
     setCurrentChallenge({ ...challenge, files: challenge.files || [] });
     setIsChallengeOpen(true);
   };
@@ -131,7 +136,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     const sanitizedFiles = (currentChallenge.files || []).filter(f => f.name.trim() && f.url.trim());
     
-    if (editMode && currentChallenge.id) {
+    if (challengeEditMode && currentChallenge.id) {
       const updated = challenges.map(c => c.id === currentChallenge.id ? ({ ...currentChallenge, files: sanitizedFiles } as Challenge) : c);
       saveChallenges(updated);
       toast({ title: "Challenge Updated" });
@@ -149,17 +154,33 @@ export default function AdminDashboard() {
     toast({ title: "Challenge Removed", variant: "destructive" });
   };
 
-  // User Handlers
+  const handleOpenCreateUser = () => {
+    setUserEditMode(false);
+    setSelectedUser({ name: '', email: '', college: '', score: 0, role: 'player', solvedChallenges: [] });
+    setIsUserEditOpen(true);
+  };
+
   const handleOpenEditUser = (user: User) => {
+    setUserEditMode(true);
     setSelectedUser(user);
     setIsUserEditOpen(true);
   };
 
   const handleUserUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    const updated = users.map(u => u.uid === selectedUser.uid ? (selectedUser as User) : u);
-    saveUsers(updated);
-    toast({ title: "User Profile Updated" });
+    if (userEditMode && selectedUser.uid) {
+      const updated = users.map(u => u.uid === selectedUser.uid ? (selectedUser as User) : u);
+      saveUsers(updated);
+      toast({ title: "User Profile Updated" });
+    } else {
+      const newUser = { 
+        ...selectedUser, 
+        uid: 'u' + Math.random().toString(36).substr(2, 5),
+        createdAt: Date.now() 
+      } as User;
+      saveUsers([...users, newUser]);
+      toast({ title: "Participant Created" });
+    }
     setIsUserEditOpen(false);
   };
 
@@ -186,14 +207,14 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-headline font-bold flex items-center gap-2">
               <Shield className="h-8 w-8 text-primary" /> Command <span className="text-primary">Center</span>
             </h1>
-            <p className="text-muted-foreground">Manage challenges, oversee participants, and maintain system integrity.</p>
+            <p className="text-muted-foreground">Comprehensive system management: Challenges, Participants, and Integrity.</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
             { label: 'Active Participants', value: users.length.toString(), icon: Users },
-            { label: 'Total Solves', value: users.reduce((acc, u) => acc + u.solvedChallenges.length, 0).toString(), icon: Activity },
+            { label: 'Total Solves', value: users.reduce((acc, u) => acc + (u.solvedChallenges?.length || 0), 0).toString(), icon: Activity },
             { label: 'System Health', value: 'Nominal', icon: CheckCircle2, extra: 'text-green-400' },
             { label: 'Active Challenges', value: challenges.length.toString(), icon: Globe },
           ].map((stat, i) => (
@@ -215,7 +236,7 @@ export default function AdminDashboard() {
               <Globe className="h-4 w-4 mr-2" /> Challenges
             </TabsTrigger>
             <TabsTrigger value="users" className="data-[state=active]:bg-primary">
-              <Users className="h-4 w-4 mr-2" /> Participants
+              <Users className="h-4 w-4 mr-2" /> User Management
             </TabsTrigger>
           </TabsList>
 
@@ -223,7 +244,7 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-headline font-bold">Challenge Inventory</h2>
               <Button className="neon-glow" onClick={handleOpenCreateChallenge}>
-                <Plus className="mr-2 h-4 w-4" /> Create Challenge
+                <Plus className="mr-2 h-4 w-4" /> Add Challenge
               </Button>
             </div>
             
@@ -231,7 +252,7 @@ export default function AdminDashboard() {
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border">
+                    <TableRow className="border-border hover:bg-transparent">
                       <TableHead>Challenge</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead className="text-right">Points</TableHead>
@@ -269,14 +290,19 @@ export default function AdminDashboard() {
           <TabsContent value="users" className="space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <h2 className="text-xl font-headline font-bold">Participant Database</h2>
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search by name, college, email..." 
-                  className="pl-10 bg-card border-border"
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                />
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search by name, college, email..." 
+                    className="pl-10 bg-card border-border"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                  />
+                </div>
+                <Button className="neon-glow whitespace-nowrap" onClick={handleOpenCreateUser}>
+                  <UserPlus className="mr-2 h-4 w-4" /> Create User
+                </Button>
               </div>
             </div>
 
@@ -284,7 +310,7 @@ export default function AdminDashboard() {
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border">
+                    <TableRow className="border-border hover:bg-transparent">
                       <TableHead>Participant</TableHead>
                       <TableHead>College</TableHead>
                       <TableHead className="text-right">Solves</TableHead>
@@ -308,7 +334,7 @@ export default function AdminDashboard() {
                           </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">{u.college}</TableCell>
-                        <TableCell className="text-right font-code">{u.solvedChallenges.length}</TableCell>
+                        <TableCell className="text-right font-code">{u.solvedChallenges?.length || 0}</TableCell>
                         <TableCell className="text-right font-bold text-primary">{u.score} PTS</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -335,7 +361,7 @@ export default function AdminDashboard() {
             <form onSubmit={handleChallengeSubmit}>
               <DialogHeader>
                 <DialogTitle className="font-headline text-2xl">
-                  {editMode ? 'Update' : 'Deploy New'} <span className="text-primary">Challenge</span>
+                  {challengeEditMode ? 'Update' : 'Deploy New'} <span className="text-primary">Challenge</span>
                 </DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -353,7 +379,7 @@ export default function AdminDashboard() {
                   <label className="text-right text-sm font-medium">Category</label>
                   <Select 
                     value={currentChallenge.category} 
-                    onValueChange={(val) => setCurrentChallenge({...currentChallenge, category: val})}
+                    onValueChange={(val) => setCurrentChallenge({...currentChallenge, category: val as any})}
                   >
                     <SelectTrigger className="col-span-3 bg-background">
                       <SelectValue placeholder="Select Category" />
@@ -458,28 +484,31 @@ export default function AdminDashboard() {
               </div>
               <DialogFooter>
                 <Button type="submit" className="neon-glow w-full">
-                  {editMode ? 'Save Changes' : 'Initialize Deployment'} 
+                  {challengeEditMode ? 'Save Changes' : 'Initialize Deployment'} 
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
 
-        {/* User Edit Dialog */}
+        {/* User Management Dialog */}
         <Dialog open={isUserEditOpen} onOpenChange={setIsUserEditOpen}>
           <DialogContent className="sm:max-w-[425px] bg-card border-border">
             <form onSubmit={handleUserUpdate}>
               <DialogHeader>
                 <DialogTitle className="font-headline text-2xl">
-                  Edit <span className="text-primary">Participant</span>
+                  {userEditMode ? 'Modify' : 'Create'} <span className="text-primary">Participant</span>
                 </DialogTitle>
-                <DialogDescription>Modify participant details and competition score.</DialogDescription>
+                <DialogDescription>
+                  {userEditMode ? 'Update account details and current score.' : 'Register a new participant for the competition.'}
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <label className="text-right text-sm font-medium">Name</label>
                   <Input 
                     className="col-span-3 bg-background" 
+                    placeholder="Operator Name"
                     value={selectedUser.name || ''}
                     onChange={(e) => setSelectedUser({...selectedUser, name: e.target.value})}
                     required 
@@ -488,6 +517,8 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-4 items-center gap-4">
                   <label className="text-right text-sm font-medium">Email</label>
                   <Input 
+                    type="email"
+                    placeholder="contact@vyugam.live"
                     className="col-span-3 bg-background" 
                     value={selectedUser.email || ''}
                     onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
@@ -497,11 +528,27 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-4 items-center gap-4">
                   <label className="text-right text-sm font-medium">College</label>
                   <Input 
+                    placeholder="Institute Name"
                     className="col-span-3 bg-background" 
                     value={selectedUser.college || ''}
                     onChange={(e) => setSelectedUser({...selectedUser, college: e.target.value})}
                     required 
                   />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label className="text-right text-sm font-medium">Role</label>
+                  <Select 
+                    value={selectedUser.role} 
+                    onValueChange={(val) => setSelectedUser({...selectedUser, role: val as UserRole})}
+                  >
+                    <SelectTrigger className="col-span-3 bg-background">
+                      <SelectValue placeholder="Select Role" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      <SelectItem value="player">Player</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <label className="text-right text-sm font-medium">Score</label>
@@ -515,7 +562,9 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit" className="neon-glow w-full">Save Profile Changes</Button>
+                <Button type="submit" className="neon-glow w-full">
+                  {userEditMode ? 'Commit Changes' : 'Finalize Registration'}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
