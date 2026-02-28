@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { 
   Shield, Plus, Edit, Trash2, Activity, 
   Users, Globe, FileArchive, X,
-  Search, UserCog, Ban, CheckCircle2, UserPlus
+  Search, UserCog, Ban, CheckCircle2, UserPlus,
+  Lock, Unlock, AlertCircle, RefreshCcw, Settings2
 } from 'lucide-react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -26,6 +27,8 @@ import {
   SelectTrigger, SelectValue 
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ChallengeFile, User, UserRole } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -61,6 +64,10 @@ export default function AdminDashboard() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [userSearch, setUserSearch] = useState('');
+  
+  // Event controls state
+  const [isLive, setIsLive] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
   
   const [isChallengeOpen, setIsChallengeOpen] = useState(false);
   const [isUserEditOpen, setIsUserEditOpen] = useState(false);
@@ -207,7 +214,7 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-headline font-bold flex items-center gap-2">
               <Shield className="h-8 w-8 text-primary" /> Command <span className="text-primary">Center</span>
             </h1>
-            <p className="text-muted-foreground">Comprehensive system management: Challenges, Participants, and Integrity.</p>
+            <p className="text-muted-foreground">Comprehensive system management: Control, Content, and Community.</p>
           </div>
         </div>
 
@@ -215,8 +222,8 @@ export default function AdminDashboard() {
           {[
             { label: 'Active Participants', value: users.length.toString(), icon: Users },
             { label: 'Total Solves', value: users.reduce((acc, u) => acc + (u.solvedChallenges?.length || 0), 0).toString(), icon: Activity },
-            { label: 'System Health', value: 'Nominal', icon: CheckCircle2, extra: 'text-green-400' },
-            { label: 'Active Challenges', value: challenges.length.toString(), icon: Globe },
+            { label: 'System Status', value: maintenanceMode ? 'MAINTENANCE' : 'ONLINE', icon: CheckCircle2, extra: maintenanceMode ? 'text-orange-400' : 'text-green-400' },
+            { label: 'Live Challenges', value: challenges.length.toString(), icon: Globe },
           ].map((stat, i) => (
             <Card key={i} className="bg-card border-border/50">
               <CardContent className="p-4 flex items-center justify-between">
@@ -231,12 +238,15 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="challenges" className="space-y-6">
-          <TabsList className="bg-card border border-border">
-            <TabsTrigger value="challenges" className="data-[state=active]:bg-primary">
+          <TabsList className="bg-card border border-border flex w-full md:w-auto overflow-x-auto justify-start p-1">
+            <TabsTrigger value="challenges" className="data-[state=active]:bg-primary min-w-[120px]">
               <Globe className="h-4 w-4 mr-2" /> Challenges
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-primary">
-              <Users className="h-4 w-4 mr-2" /> User Management
+            <TabsTrigger value="users" className="data-[state=active]:bg-primary min-w-[120px]">
+              <Users className="h-4 w-4 mr-2" /> Participants
+            </TabsTrigger>
+            <TabsTrigger value="admin" className="data-[state=active]:bg-primary min-w-[120px]">
+              <Settings2 className="h-4 w-4 mr-2" /> Event Admin
             </TabsTrigger>
           </TabsList>
 
@@ -352,6 +362,67 @@ export default function AdminDashboard() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="admin" className="space-y-6">
+            <h2 className="text-xl font-headline font-bold">Event Administration</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" /> Global Controls
+                  </CardTitle>
+                  <CardDescription>Manage the overall state of the competition.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Submissions Active</Label>
+                      <p className="text-sm text-muted-foreground">Allow participants to submit flags.</p>
+                    </div>
+                    <Switch 
+                      checked={isLive} 
+                      onCheckedChange={(val) => {
+                        setIsLive(val);
+                        toast({ title: val ? "Submissions Unlocked" : "Submissions Paused", variant: val ? "default" : "destructive" });
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Maintenance Mode</Label>
+                      <p className="text-sm text-muted-foreground">Locks the entire site for emergency updates.</p>
+                    </div>
+                    <Switch 
+                      checked={maintenanceMode} 
+                      onCheckedChange={(val) => {
+                        setMaintenanceMode(val);
+                        toast({ title: val ? "Maintenance Enabled" : "Site Online", variant: val ? "destructive" : "default" });
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-orange-400" /> System Integrity
+                  </CardTitle>
+                  <CardDescription>Quick actions for session and data management.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button variant="outline" className="w-full justify-start border-border hover:bg-secondary" onClick={() => toast({ title: "Scores Recalculated" })}>
+                    <RefreshCcw className="mr-2 h-4 w-4" /> Recalculate Global Leaderboard
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-border hover:bg-secondary text-destructive hover:text-destructive" onClick={() => toast({ title: "All Sessions Cleared", variant: "destructive" })}>
+                    <Lock className="mr-2 h-4 w-4" /> Force Logout All Participants
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
 
