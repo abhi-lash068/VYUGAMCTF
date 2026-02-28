@@ -20,28 +20,24 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate network delay
+    // Participant Login Logic
     setTimeout(() => {
-      // In this prototype, 'admin' is the secret keyword for administrative access
-      const isAdmin = identifier.toLowerCase() === 'admin';
-      const role = isAdmin ? 'admin' : 'player';
-      
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('userName', isAdmin ? 'System Administrator' : (identifier || 'Participant'));
+      // Participants are ALWAYS assigned the 'player' role
+      localStorage.setItem('userRole', 'player');
+      localStorage.setItem('userName', identifier || 'Participant');
 
       toast({
         title: "Session Initialized",
-        description: `Access granted as ${role.toUpperCase()}. Redirecting to terminal...`,
+        description: "Welcome back, Operator. Redirecting to your dashboard...",
       });
 
       router.push('/dashboard');
       setIsLoading(false);
-    }, 1000);
+    }, 800);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-10">
         <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] rounded-full bg-primary blur-[100px]" />
         <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] rounded-full bg-accent blur-[100px]" />
@@ -53,8 +49,8 @@ export default function LoginPage() {
             <div className="mx-auto h-12 w-12 rounded-lg bg-primary flex items-center justify-center mb-4">
               <Shield className="h-6 w-6 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl font-headline font-bold">Access <span className="text-primary">Terminal</span></CardTitle>
-            <CardDescription>Enter your credentials to breach the perimeter.</CardDescription>
+            <CardTitle className="text-2xl font-headline font-bold text-foreground">Participant <span className="text-primary">Login</span></CardTitle>
+            <CardDescription>Enter your codename to access the CTF network.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -62,7 +58,7 @@ export default function LoginPage() {
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
-                    placeholder="Username or Email" 
+                    placeholder="Username / Codename" 
                     className="pl-10 bg-background" 
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
@@ -84,7 +80,7 @@ export default function LoginPage() {
                 </div>
               </div>
               <Button type="submit" className="w-full neon-glow font-headline" disabled={isLoading}>
-                {isLoading ? 'Verifying...' : 'Initialize Session'} 
+                {isLoading ? 'Decrypting...' : 'Initialize Session'} 
                 {!isLoading && <Terminal className="ml-2 h-4 w-4" />}
               </Button>
             </form>
@@ -98,13 +94,6 @@ export default function LoginPage() {
             </Link>
           </CardFooter>
         </Card>
-
-        {/* Informative notice for players */}
-        <div className="text-center px-4">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">
-            Secure Connection: AES-256 Bit Encrypted Session
-          </p>
-        </div>
       </div>
     </div>
   );

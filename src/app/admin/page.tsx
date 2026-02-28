@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,9 +27,27 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const { toast } = useToast();
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isLocking, setIsLocking] = useState(false);
+
+  useEffect(() => {
+    // SECURITY GUARD: Check if the user is actually an admin
+    const role = localStorage.getItem('userRole');
+    if (role !== 'admin') {
+      toast({
+        title: "Access Denied",
+        description: "You do not have permission to access the Command Center.",
+        variant: "destructive"
+      });
+      router.push('/');
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [router, toast]);
+
+  if (!isAuthorized) return null;
 
   const challenges = [
     { id: '1', title: 'The Hidden Vault', category: 'Web', points: 100, solves: 12 },
@@ -55,7 +74,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto py-8 px-4 space-y-8">
+      <main className="container mx-auto py-8 px-4 space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-headline font-bold flex items-center gap-2">
@@ -203,7 +222,7 @@ export default function AdminDashboard() {
           <Card className="bg-card border-border/50">
             <CardHeader>
               <CardTitle className="font-headline text-lg flex items-center gap-2">
-                <Terminal className="h-5 w-5 text-primary" /> System Logs
+                <TerminalIcon className="h-5 w-5 text-primary" /> System Logs
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -272,7 +291,7 @@ export default function AdminDashboard() {
   );
 }
 
-const Terminal = ({ className }: { className?: string }) => (
+const TerminalIcon = ({ className }: { className?: string }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     viewBox="0 0 24 24" 

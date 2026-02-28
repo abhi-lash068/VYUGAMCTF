@@ -1,6 +1,5 @@
-
 import Link from 'next/link';
-import { Shield, Terminal, ArrowRight, Lock, Trophy, Zap } from 'lucide-react';
+import { Shield, Terminal, ArrowRight, Lock, Trophy, Zap, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
@@ -53,10 +52,18 @@ export default function Home() {
 
       <footer className="border-t border-border/50 py-8 text-center text-sm text-muted-foreground relative z-10 font-code">
         <p>© {new Date().getFullYear()} VYUGAM SECURITY SYMPOSIUM. ALL RIGHTS RESERVED.</p>
-        <div className="mt-2 flex justify-center gap-6">
-          <Link href="#" className="hover:text-primary">Rules</Link>
-          <Link href="#" className="hover:text-primary">FAQ</Link>
-          <Link href="#" className="hover:text-primary">Privacy</Link>
+        <div className="mt-4 flex flex-col items-center gap-4">
+          <div className="flex justify-center gap-6">
+            <Link href="#" className="hover:text-primary">Rules</Link>
+            <Link href="#" className="hover:text-primary">FAQ</Link>
+            <Link href="#" className="hover:text-primary">Privacy</Link>
+          </div>
+          <Link 
+            href="/admin/login" 
+            className="flex items-center gap-1.5 px-3 py-1 rounded border border-border/50 text-[10px] uppercase tracking-wider hover:bg-destructive/10 hover:border-destructive/30 hover:text-destructive transition-all group"
+          >
+            <ShieldAlert className="h-3 w-3 opacity-50 group-hover:opacity-100" /> Admin Terminal Access
+          </Link>
         </div>
       </footer>
     </div>
