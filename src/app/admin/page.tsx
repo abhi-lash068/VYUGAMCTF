@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Shield, Plus, Edit, Trash2, FileDown, Activity, 
-  Settings, Users, AlertCircle, Send, Lock, Globe 
+  Settings, Users, AlertCircle, Send, Lock, Globe, Save
 } from 'lucide-react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -26,14 +26,40 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
+interface Challenge {
+  id: string;
+  title: string;
+  category: string;
+  points: number;
+  solves: number;
+  description: string;
+  flag: string;
+}
+
+const INITIAL_CHALLENGES: Challenge[] = [
+  { id: '1', title: 'The Hidden Vault', category: 'Web', points: 100, solves: 12, description: 'Find the hidden admin credentials in the source.', flag: 'VYUGAM{view_source_is_not_enough}' },
+  { id: '2', title: 'Echoes in the Dark', category: 'Crypto', points: 250, solves: 5, description: 'The signal is encrypted with a simple shift. BMZNHNS{...}', flag: 'VYUGAM{caesar_is_proud}' },
+  { id: '3', title: 'Lost Signal', category: 'Forensics', points: 500, solves: 2, description: 'Analyze the pcap file to recover the transmitted data.', flag: 'VYUGAM{pcap_analysis_master}' },
+];
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { toast } = useToast();
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [challenges, setChallenges] = useState<Challenge[]>(INITIAL_CHALLENGES);
+  
+  // Dialog State
+  const [isOpen, setIsOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentChallenge, setCurrentChallenge] = useState<Partial<Challenge>>({
+    title: '',
+    category: 'Web',
+    points: 100,
+    description: '',
+    flag: ''
+  });
 
   useEffect(() => {
-    // SECURITY GUARD: Check if the user is actually an admin
     const role = localStorage.getItem('userRole');
     if (role !== 'admin') {
       toast({
@@ -44,32 +70,91 @@ export default function AdminDashboard() {
       router.push('/');
     } else {
       setIsAuthorized(true);
+      // Load custom challenges from localStorage if they exist
+      const saved = localStorage.getItem('ctf_challenges');
+      if (saved) {
+        try {
+          setChallenges(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to load challenges", e);
+        }
+      }
     }
   }, [router, toast]);
 
-  if (!isAuthorized) return null;
+  const saveToStorage = (updatedList: Challenge[]) => {
+    localStorage.setItem('ctf_challenges', JSON.stringify(updatedList));
+  };
 
-  const challenges = [
-    { id: '1', title: 'The Hidden Vault', category: 'Web', points: 100, solves: 12 },
-    { id: '2', title: 'Echoes in the Dark', category: 'Crypto', points: 250, solves: 5 },
-    { id: '3', title: 'Lost Signal', category: 'Forensics', points: 500, solves: 2 },
-  ];
+  const handleOpenCreate = () => {
+    setEditMode(false);
+    setCurrentChallenge({
+      title: '',
+      category: 'Web',
+      points: 100,
+      description: '',
+      flag: ''
+    });
+    setIsOpen(true);
+  };
 
-  const handleAction = (action: string) => {
+  const handleOpenEdit = (challenge: Challenge) => {
+    setEditMode(true);
+    setCurrentChallenge(challenge);
+    setIsOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    const updated = challenges.filter(c => c.id !== id);
+    setChallenges(updated);
+    saveToStorage(updated);
+    toast({
+      title: "Challenge Removed",
+      description: "The challenge has been deleted from the database.",
+      variant: "destructive"
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editMode && currentChallenge.id) {
+      const updated = challenges.map(c => 
+        c.id === currentChallenge.id ? (currentChallenge as Challenge) : c
+      );
+      setChallenges(updated);
+      saveToStorage(updated);
+      toast({
+        title: "Challenge Updated",
+        description: `${currentChallenge.title} has been updated successfully.`,
+      });
+    } else {
+      const newChallenge: Challenge = {
+        ...(currentChallenge as Omit<Challenge, 'id' | 'solves'>),
+        id: Math.random().toString(36).substr(2, 9),
+        solves: 0
+      } as Challenge;
+      
+      const updated = [...challenges, newChallenge];
+      setChallenges(updated);
+      saveToStorage(updated);
+      toast({
+        title: "Challenge Deployed",
+        description: `${newChallenge.title} is now live.`,
+      });
+    }
+    
+    setIsOpen(false);
+  };
+
+  const handleGeneralAction = (action: string) => {
     toast({
       title: "Action Initiated",
       description: `The ${action} command has been sent to the primary server.`,
     });
   };
 
-  const handleCreateChallenge = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreateOpen(false);
-    toast({
-      title: "Challenge Created",
-      description: "A new challenge has been deployed to the database.",
-    });
-  };
+  if (!isAuthorized) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,32 +168,43 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">Manage challenges, monitor activity, and oversee event security.</p>
           </div>
           <div className="flex gap-2">
-             <Button variant="outline" className="border-border" onClick={() => handleAction('Export')}>
+             <Button variant="outline" className="border-border" onClick={() => handleGeneralAction('Export')}>
               <FileDown className="mr-2 h-4 w-4" /> Export Results
             </Button>
             
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button className="neon-glow">
+                <Button className="neon-glow" onClick={handleOpenCreate}>
                   <Plus className="mr-2 h-4 w-4" /> Create Challenge
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[525px] bg-card border-border">
-                <form onSubmit={handleCreateChallenge}>
+                <form onSubmit={handleSubmit}>
                   <DialogHeader>
-                    <DialogTitle className="font-headline text-2xl">Deploy New <span className="text-primary">Challenge</span></DialogTitle>
+                    <DialogTitle className="font-headline text-2xl">
+                      {editMode ? 'Update' : 'Deploy New'} <span className="text-primary">Challenge</span>
+                    </DialogTitle>
                     <DialogDescription>
-                      Configure the parameters for a new security laboratory.
+                      {editMode ? 'Modify the existing challenge parameters.' : 'Configure the parameters for a new security laboratory.'}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                       <label className="text-right text-sm font-medium">Title</label>
-                      <Input placeholder="Enter challenge name" className="col-span-3 bg-background" required />
+                      <Input 
+                        placeholder="Enter challenge name" 
+                        className="col-span-3 bg-background" 
+                        value={currentChallenge.title}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
+                        required 
+                      />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <label className="text-right text-sm font-medium">Category</label>
-                      <Select defaultValue="Web">
+                      <Select 
+                        value={currentChallenge.category} 
+                        onValueChange={(val) => setCurrentChallenge({...currentChallenge, category: val})}
+                      >
                         <SelectTrigger className="col-span-3 bg-background">
                           <SelectValue placeholder="Select Category" />
                         </SelectTrigger>
@@ -123,20 +219,40 @@ export default function AdminDashboard() {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <label className="text-right text-sm font-medium">Points</label>
-                      <Input type="number" placeholder="100" className="col-span-3 bg-background" required />
+                      <Input 
+                        type="number" 
+                        placeholder="100" 
+                        className="col-span-3 bg-background" 
+                        value={currentChallenge.points}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, points: parseInt(e.target.value) || 0})}
+                        required 
+                      />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <label className="text-right text-sm font-medium">Flag</label>
-                      <Input placeholder="VYUGAM{...}" className="col-span-3 bg-background font-code" required />
+                      <Input 
+                        placeholder="VYUGAM{...}" 
+                        className="col-span-3 bg-background font-code" 
+                        value={currentChallenge.flag}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, flag: e.target.value})}
+                        required 
+                      />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <label className="text-right text-sm font-medium">Description</label>
-                      <Textarea placeholder="Explain the vulnerability..." className="col-span-3 bg-background min-h-[100px]" required />
+                      <Textarea 
+                        placeholder="Explain the vulnerability..." 
+                        className="col-span-3 bg-background min-h-[100px]" 
+                        value={currentChallenge.description}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
+                        required 
+                      />
                     </div>
                   </div>
                   <DialogFooter>
                     <Button type="submit" className="neon-glow w-full sm:w-auto">
-                      Initialize Deployment <Send className="ml-2 h-4 w-4" />
+                      {editMode ? 'Save Changes' : 'Initialize Deployment'} 
+                      {editMode ? <Save className="ml-2 h-4 w-4" /> : <Send className="ml-2 h-4 w-4" />}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -150,7 +266,7 @@ export default function AdminDashboard() {
             { label: 'Total Participants', value: '142', icon: Users },
             { label: 'Submissions/Min', value: '24', icon: Activity },
             { label: 'Platform Status', value: 'Secure', icon: Shield, extra: 'text-green-400' },
-            { label: 'Reported Issues', value: '0', icon: AlertCircle },
+            { label: 'Total Challenges', value: challenges.length.toString(), icon: AlertCircle },
           ].map((stat, i) => (
             <Card key={i} className="bg-card border-border/50">
               <CardContent className="p-4 flex items-center justify-between">
@@ -197,7 +313,7 @@ export default function AdminDashboard() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 hover:text-primary"
-                          onClick={() => handleAction('Edit')}
+                          onClick={() => handleOpenEdit(ch)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -205,7 +321,7 @@ export default function AdminDashboard() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 hover:text-destructive"
-                          onClick={() => handleAction('Delete')}
+                          onClick={() => handleDelete(ch.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -213,6 +329,13 @@ export default function AdminDashboard() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {challenges.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                      No challenges deployed yet. Click "Create Challenge" to start.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -263,7 +386,7 @@ export default function AdminDashboard() {
                 <Button 
                   variant="outline" 
                   className="border-border hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                  onClick={() => handleAction('Submissions Lock')}
+                  onClick={() => handleGeneralAction('Submissions Lock')}
                 >
                   Lock Now
                 </Button>
@@ -278,7 +401,7 @@ export default function AdminDashboard() {
                 <Button 
                   variant="outline" 
                   className="border-border hover:bg-primary hover:text-primary-foreground transition-colors"
-                  onClick={() => handleAction('Maintenance Mode')}
+                  onClick={() => handleGeneralAction('Maintenance Mode')}
                 >
                   Enable
                 </Button>
