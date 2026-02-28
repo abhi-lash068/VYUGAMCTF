@@ -14,4 +14,4 @@ This is a production-ready Capture The Flag (CTF) platform prototype built for t
 - `docs/ARCHITECTURE.md`: Detailed explanation of the app flow and logic.
 
 ## Tech Stack
-Next.js 15, React, Tailwind CSS, Shadcn UI, and Google Genkit.
+Next.js 15, React, Tailwind CSS, Shadcn UI, and Google Genkit.# vyugamctf
